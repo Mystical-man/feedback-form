@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ form.title }} — Submit Feedback{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1>{{ form.title }}</h1>
+    {% if form.description %}
+    <p class="text-muted">{{ form.description }}</p>
+    {% endif %}
+</div>
+
+<form method="post" action="{{ url_for('form_submit_page', form_id=form.id) }}">
+
+    {% for q in questions %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <label class="form-label fw-bold">
+                {{ q.question_text }}
+                {% if q.is_required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+
+            {% if q.question_type == 'short_text' %}
+            <input type="text" class="form-control" name="q_{{ q.id }}" placeholder="Short answer" {% if q.is_required %}required{% endif %}>
+            {% elif q.question_type == 'long_text' %}
+            <textarea class="form-control" name="q_{{ q.id }}" rows="3" placeholder="Your answer" {% if q.is_required %}required{% endif %}></textarea>
+            {% elif q.question_type == 'multiple_choice' %}
+            <select class="form-select" name="q_{{ q.id }}" {% if q.is_required %}required{% endif %}>
+                <option value="">-- Select one --</option>
+                {% for opt in (q.options or '').split(',') %}
+                {% set opt = opt.strip() %}
+                {% if opt %}
+                <option value="{{ opt }}">{{ opt }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+            {% elif q.question_type == 'rating' %}
+            <div class="d-flex gap-2 align-items-center">
+                {% for i in range(1, 6) %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" id="q{{ q.id }}_r{{ i }}" value="{{ i }}" {% if q.is_required %}required{% endif %}>
+                    <label class="form-check-label" for="q{{ q.id }}_r{{ i }}">{{ i }}</label>
+                </div>
+                {% endfor %}
+                <span class="text-muted small">(1 = lowest, 5 = highest)</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="card mb-4">
+        <div class="card-header">Your identity</div>
+        <div class="card-body">
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="is_anonymous" id="is_anonymous" checked>
+                <label class="form-check-label" for="is_anonymous">Submit anonymously</label>
+            </div>
+            <div id="nameEmailFields" style="display: none;">
+                <div class="mb-2">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-control" name="respondent_name" placeholder="Your name">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="respondent_email" placeholder="your@email.com">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Feedback</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Back to Home</a>
+</form>
+
+<script>
+document.getElementById('is_anonymous').addEventListener('change', function() {
+    document.getElementById('nameEmailFields').style.display = this.checked ? 'none' : 'block';
+});
+</script>
+{% endblock %}

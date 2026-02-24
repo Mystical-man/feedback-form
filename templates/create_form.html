@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Create Form — Feedback Collection{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Create New Feedback Form</h1>
+
+<form method="post" action="{{ url_for('create_form') }}">
+    <div class="card mb-4">
+        <div class="card-header">Form details</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="form_title" class="form-label">Form Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="form_title" name="form_title" required placeholder="e.g. Course Feedback - CS101">
+            </div>
+            <div class="mb-3">
+                <label for="form_description" class="form-label">Form Description</label>
+                <textarea class="form-control" id="form_description" name="form_description" rows="2" placeholder="Brief description of the form (optional)"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Questions</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="addQuestion">Add question</button>
+        </div>
+        <div class="card-body">
+            <div id="questionsContainer">
+                <!-- First question row (template for cloning) -->
+                <div class="question-row border rounded p-3 mb-3" data-index="1">
+                    <label class="form-label fw-bold">Question 1</label>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" name="question_text_1" placeholder="Question text" required>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" name="question_type_1">
+                                {% for value, label in question_types %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="required_1" id="required_1" checked>
+                                <label class="form-check-label" for="required_1">Required</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options-wrap mt-2" data-for="question_type_1" style="display: none;">
+                        <label class="form-label small">Options (comma-separated, for Multiple Choice)</label>
+                        <input type="text" class="form-control form-control-sm" name="options_1" placeholder="Option A, Option B, Option C">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Form</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Cancel</a>
+</form>
+
+<script>
+(function() {
+    const container = document.getElementById('questionsContainer');
+    const questionTypes = {{ question_types | tojson }};
+
+    function updateOptionsVisibility(row) {
+        const idx = row.dataset.index;
+        const typeSelect = row.querySelector('[name="question_type_' + idx + '"]');
+        const optionsWrap = row.querySelector('.options-wrap');
+        optionsWrap.style.display = typeSelect.value === 'multiple_choice' ? 'block' : 'none';
+    }
+
+    function bindRowEvents(row) {
+        const idx = row.dataset.index;
+        const typeSelect = row.querySelector('[name="question_type_' + idx + '"]');
+        if (typeSelect) typeSelect.addEventListener('change', function() { updateOptionsVisibility(row); });
+    }
+
+    document.getElementById('addQuestion').addEventListener('click', function() {
+        const rows = container.querySelectorAll('.question-row');
+        const nextIndex = rows.length + 1;
+        const firstRow = rows[0];
+        const newRow = firstRow.cloneNode(true);
+        newRow.classList.remove('border');
+        newRow.dataset.index = nextIndex;
+        newRow.querySelector('label.fw-bold').textContent = 'Question ' + nextIndex;
+        newRow.querySelector('[name="question_text_1"]').name = 'question_text_' + nextIndex;
+        newRow.querySelector('[name="question_text_' + nextIndex + '"]').value = '';
+        newRow.querySelector('[name="question_text_' + nextIndex + '"]').required = false;
+        newRow.querySelector('[name="question_type_1"]').name = 'question_type_' + nextIndex;
+        newRow.querySelector('[name="question_type_' + nextIndex + '"]').selectedIndex = 0;
+        var reqCb = newRow.querySelector('[name="required_1"]');
+        reqCb.name = 'required_' + nextIndex;
+        reqCb.id = 'required_' + nextIndex;
+        reqCb.checked = true;
+        var reqLabel = newRow.querySelector('label[for="required_1"]');
+        if (reqLabel) reqLabel.setAttribute('for', 'required_' + nextIndex);
+        newRow.querySelector('.options-wrap').dataset.for = 'question_type_' + nextIndex;
+        newRow.querySelector('[name="options_1"]').name = 'options_' + nextIndex;
+        newRow.querySelector('[name="options_' + nextIndex + '"]').value = '';
+        container.appendChild(newRow);
+        updateOptionsVisibility(newRow);
+        bindRowEvents(newRow);
+    });
+
+    // Show/hide options for first question based on type
+    const firstRow = container.querySelector('.question-row');
+    firstRow.querySelector('[name="question_type_1"]').addEventListener('change', function() { updateOptionsVisibility(firstRow); });
+    updateOptionsVisibility(firstRow); // initial state
+})();
+</script>
+{% endblock %}

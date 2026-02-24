@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ form.title }} — Summary{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>{{ form.title }}</h1>
+        {% if form.description %}
+        <p class="text-muted mb-0">{{ form.description }}</p>
+        {% endif %}
+    </div>
+    <a class="btn btn-outline-primary" href="{{ url_for('form_submit_page', form_id=form.id) }}">Submit Feedback</a>
+</div>
+
+<div class="alert alert-info">
+    <strong>Total responses:</strong> {{ total_responses }}
+</div>
+
+{% for s in summaries %}
+<div class="card mb-4">
+    <div class="card-header">{{ s.question.question_text }}</div>
+    <div class="card-body">
+        <p class="text-muted small mb-2">Type: {{ s.question.question_type }} | Responses: {{ s.count }}</p>
+
+        {% if s.question.question_type == 'rating' %}
+        <p class="mb-0"><strong>Average rating:</strong> {{ s.avg_rating if s.avg_rating is not none else 'N/A' }} (out of 5)</p>
+        {% elif s.question.question_type == 'multiple_choice' %}
+        <ul class="list-unstyled mb-0">
+            {% for option, count in s.choice_counts.items() %}
+            <li>{{ option }}: <strong>{{ count }}</strong></li>
+            {% endfor %}
+            {% if not s.choice_counts %} <li class="text-muted">No responses yet.</li> {% endif %}
+        </ul>
+        {% else %}
+        <ul class="list-unstyled mb-0 text-break">
+            {% for text in s.text_responses %}
+            <li class="border-bottom py-1">• {{ text }}</li>
+            {% endfor %}
+            {% if not s.text_responses %} <li class="text-muted">No responses yet.</li> {% endif %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Back to Home</a>
+{% endblock %}
