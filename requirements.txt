@@ -1,0 +1,3 @@
+# Feedback Collection App - Dependencies
+# Install with: pip install -r requirements.txt
+Flask>=2.3.0
