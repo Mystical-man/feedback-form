@@ -1,0 +1,30 @@
+/* Minimal custom styles for Feedback Collection app */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Slightly tighter list group items on home */
+.list-group-item h5 {
+    margin-bottom: 0.25rem;
+}
+
+/* Form cards: subtle spacing */
+.card-header {
+    font-weight: 600;
+}
+
+.question-row .form-label {
+    margin-bottom: 0.25rem;
+}
+
+/* Summary view: text responses list */
+.text-break {
+    word-break: break-word;
+}
